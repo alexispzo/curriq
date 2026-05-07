@@ -10,10 +10,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid email" }, { status: 400 })
   }
 
-  try {
-    await resend.contacts.create({ email: body.email })
-    return Response.json({ ok: true })
-  } catch {
+  const { error } = await resend.contacts.create({ email: body.email })
+  if (error) {
     return Response.json({ error: "Something went wrong" }, { status: 500 })
   }
+  return Response.json({ ok: true })
 }
