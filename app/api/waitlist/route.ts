@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { error } = await resend.contacts.create({
     email: body.email,
-    audienceId: process.env.RESEND_AUDIENCE_ID!,
+    segments: [{ id: process.env.RESEND_AUDIENCE_ID! }],
   })
   if (error) {
     return Response.json({ error: "Something went wrong" }, { status: 500 })
