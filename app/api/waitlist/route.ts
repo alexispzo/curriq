@@ -1,6 +1,5 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(request: Request) {
@@ -10,6 +9,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid email" }, { status: 400 })
   }
 
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const { error } = await resend.contacts.create({
     email: body.email,
     audienceId: process.env.RESEND_AUDIENCE_ID!,
