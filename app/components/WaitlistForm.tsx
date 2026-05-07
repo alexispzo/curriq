@@ -56,17 +56,21 @@ export default function WaitlistForm() {
               required
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (status === "error") setStatus("idle")
+              }}
               disabled={status === "loading"}
               className="flex-1 rounded border border-divider bg-white px-4 py-3 font-serif text-sm text-ink placeholder:text-muted focus:border-orange focus:outline-none disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={status === "loading"}
+              aria-label={status === "loading" ? "Submitting…" : undefined}
               className="flex items-center justify-center rounded bg-orange px-6 py-3 font-serif text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
             >
               {status === "loading" ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span aria-hidden="true" className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
                 "Join the waitlist"
               )}

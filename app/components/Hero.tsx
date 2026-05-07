@@ -26,7 +26,7 @@ export default function Hero() {
           </p>
           <a
             href="#waitlist"
-            className="mt-8 inline-block rounded bg-orange px-6 py-3 font-serif text-sm font-bold text-white transition-opacity hover:opacity-90"
+            className="mt-8 inline-block rounded bg-orange px-6 py-3 font-serif text-sm font-bold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-orange focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             Join the waitlist
           </a>
