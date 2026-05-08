@@ -18,14 +18,14 @@ There is no test suite. `npm run build` is the fastest way to catch TypeScript a
 
 ## Architecture
 
-**Stack:** Next.js 16.2.5 App Router · React 19 · Tailwind v4 · TypeScript · `motion/react` v12 · Resend
+**Stack:** Next.js 16.2.5 App Router · React 19 · Tailwind v4 · TypeScript · `motion/react` v12 · Resend · `@anthropic-ai/sdk`
 
 All application code lives under `app/`. The project uses the App Router exclusively — no Pages Router.
 
 ### Routing
 
 - `app/page.tsx` — landing page (server component), composes section components
-- `app/generate/page.tsx` — generation page (client component, to be built)
+- `app/generate/page.tsx` — generation page (client component); manages the 4-state machine (idle / generating / done / error)
 - `app/api/*/route.ts` — Route Handlers using native Web `Request`/`Response` APIs
 
 Route Handlers are plain async functions exported by name (`GET`, `POST`, etc.). They use `Response.json(...)` and `new Response(...)` — not Next.js-specific helpers.
@@ -34,9 +34,30 @@ Route Handlers are plain async functions exported by name (`GET`, `POST`, etc.).
 
 All components live in `app/components/`. They are either:
 - **Server components** (no directive) — static sections like `Hero`, `HowItWorks`, `SampleOutput`, `SocialProof`, `Footer`
-- **Client components** (`"use client"`) — anything with state or `motion/react` animations, currently `WaitlistForm`
+- **Client components** (`"use client"`) — anything with state or `motion/react` animations: `WaitlistForm`, `GenerateForm`, `CurriculumOutput`
 
-There is no `lib/`, `utils/`, or shared helper layer yet.
+There is no `lib/`, `utils/`, or shared helper layer.
+
+#### Generation components
+
+**`GenerateForm.tsx`** — 3-field form (topic / target audience / desired transformation). Validates on submit, focuses first invalid field on error, pre-fills from `initialValues` prop. Exports `FormValues` type.
+
+**`CurriculumOutput.tsx`** — streaming curriculum renderer. Receives `{ topic, audience, transformation, modules, prereqNote, isStreaming, onEdit? }`. Shows input summary chip, animated module cards (fade-in from below via `motion/react`), blinking cursor on the active objective during streaming, prerequisite block, and action buttons (Copy / Edit inputs) when `isStreaming=false && onEdit` is provided. Exports `Module` type.
+
+### Streaming architecture
+
+`POST /api/generate` streams plain text (`text/plain; charset=utf-8`). Claude outputs one tagged line per newline:
+
+```
+MODULE: <title>
+OBJECTIVE: <text>
+BLOOM: <taxonomy levels>
+PREREQ: <one sentence>
+```
+
+The client buffers incomplete lines and dispatches complete ones to a parser that incrementally updates `modules[]` and `prereqNote` state. On stream close, page transitions to `done`. On fetch/read error, transitions to `error`.
+
+The system prompt is marked `cache_control: { type: "ephemeral" }` for Anthropic prompt caching. Rate limiting: 3 requests/IP/hour via module-level `Map` in the route handler.
 
 ### Styling
 
@@ -56,12 +77,13 @@ Use these tokens (`text-orange`, `bg-cream-dark`, `border-divider`, `font-serif`
 
 ### Design conventions
 
-- Max content width: `max-w-2xl mx-auto px-6` — used on every section
+- Max content width: `max-w-2xl mx-auto px-6` — used on every section and the generate page
 - Section separation: `border-t border-divider py-20`
 - Headings: `font-serif font-bold text-ink`
 - Body/captions: `font-serif italic text-muted`
 - Labels/badges: `font-sans text-xs font-semibold uppercase tracking-wider text-orange`
-- Animations: always use `motion/react` (import from `"motion/react"`, not `"framer-motion"`)
+- All interactive elements: `min-h-[44px]` touch target floor
+- Animations: always import from `"motion/react"` (not `"framer-motion"`); respect `useReducedMotion()`
 
 ### Environment variables
 
@@ -69,7 +91,7 @@ Use these tokens (`text-orange`, `bg-cream-dark`, `border-divider`, `font-serif`
 |---|---|
 | `RESEND_API_KEY` | `app/api/waitlist/route.ts` |
 | `RESEND_AUDIENCE_ID` | `app/api/waitlist/route.ts` |
-| `ANTHROPIC_API_KEY` | `app/api/generate/route.ts` (to be built) |
+| `ANTHROPIC_API_KEY` | `app/api/generate/route.ts` |
 
 ### Deployment
 
