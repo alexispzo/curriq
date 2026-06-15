@@ -96,3 +96,8 @@ Use these tokens (`text-orange`, `bg-cream-dark`, `border-divider`, `font-serif`
 ### Deployment
 
 Deployed on Vercel with GitHub auto-deploy on push to `master`. No manual deploy step needed.
+
+### Write zones
+
+- **Human-authored (NEVER auto-write):** all source under `app/` (components, route handlers, `globals.css`), config, and copy. This is a hand-built codebase.
+- **Machine-refreshable (safe to regenerate):** none in-repo. Curriculum generation streams to the browser at runtime (`POST /api/generate`) and is never written back to repo files. Treat every committed file as a human zone.
